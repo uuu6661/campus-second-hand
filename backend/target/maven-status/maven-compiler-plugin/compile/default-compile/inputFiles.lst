@@ -5,6 +5,7 @@ I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\entity\User.java
 I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\config\CorsConfig.java
 I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\controller\GoodsController.java
 I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\dto\CategoryDTO.java
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\dto\GoodsDetailDTO.java
 I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\entity\Item.java
 I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\dto\GoodsRequest.java
 I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\dto\ApiResponse.java

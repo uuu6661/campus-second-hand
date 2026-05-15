@@ -3,6 +3,8 @@ import Home from '../views/Home.vue'
 import Register from '../views/Register.vue'
 import Login from '../views/Login.vue'
 import Publish from '../views/Publish.vue'
+import Detail from '../views/Detail.vue'
+import MyGoods from '../views/MyGoods.vue'
 
 const routes = [
   {
@@ -29,6 +31,16 @@ const routes = [
     path: '/publish',
     name: 'Publish',
     component: Publish
+  },
+  {
+    path: '/goods/:id',
+    name: 'Detail',
+    component: Detail
+  },
+  {
+    path: '/my-goods',
+    name: 'MyGoods',
+    component: MyGoods
   }
 ]
 

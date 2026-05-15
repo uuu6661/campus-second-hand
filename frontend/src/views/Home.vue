@@ -7,18 +7,41 @@
     </header>
 
     <main class="main-content">
+      <div class="search-bar">
+        <div class="category-tabs">
+          <span 
+            v-for="cat in categories" 
+            :key="cat.id"
+            :class="['tab-item', { active: selectedCategory === cat.id }]"
+            @click="selectCategory(cat.id)"
+          >
+            {{ cat.name }}
+          </span>
+        </div>
+        <div class="search-input-wrapper">
+          <el-input 
+            v-model="keyword" 
+            placeholder="搜索商品..." 
+            class="search-input"
+            @keyup.enter="handleSearch"
+          />
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+        </div>
+      </div>
+
       <div v-if="goodsList.length === 0" class="empty-state">
         <div class="empty-icon">📦</div>
-        <p>暂无商品，去发布一个吧</p>
+        <p>{{ getEmptyMessage() }}</p>
         <el-button type="primary" @click="handlePublish">去发布</el-button>
       </div>
 
-      <div v-else class="goods-grid">
+      <div v-else class="goods-grid" v-loading="loading">
         <el-card 
           v-for="goods in goodsList" 
           :key="goods.id" 
           class="goods-card"
           hover
+          @click="goToDetail(goods.id)"
         >
           <div class="goods-image">
             <img 
@@ -55,20 +78,63 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const goodsList = ref([])
+const loading = ref(false)
+const selectedCategory = ref(null)
+const keyword = ref('')
+
+const categories = ref([
+  { id: null, name: '全部' },
+  { id: 1, name: '数码产品' },
+  { id: 2, name: '图书教材' },
+  { id: 3, name: '生活用品' },
+  { id: 4, name: '服装鞋帽' },
+  { id: 5, name: '运动户外' },
+  { id: 6, name: '美妆护肤' },
+  { id: 7, name: '其他' }
+])
 
 onMounted(async () => {
   await loadGoodsList()
 })
 
 const loadGoodsList = async () => {
+  loading.value = true
   try {
-    const response = await axios.get('/api/goods')
+    const params = {}
+    if (selectedCategory.value !== null) {
+      params.categoryId = selectedCategory.value
+    }
+    if (keyword.value.trim()) {
+      params.keyword = keyword.value.trim()
+    }
+    const response = await axios.get('/api/goods', { params })
     if (response.data.code === 200) {
       goodsList.value = response.data.data
     }
   } catch (error) {
     ElMessage.error('获取商品列表失败')
+  } finally {
+    loading.value = false
   }
+}
+
+const selectCategory = async (categoryId) => {
+  selectedCategory.value = categoryId
+  await loadGoodsList()
+}
+
+const handleSearch = async () => {
+  await loadGoodsList()
+}
+
+const getEmptyMessage = () => {
+  if (keyword.value.trim()) {
+    return '没有找到相关商品'
+  }
+  if (selectedCategory.value !== null) {
+    return '该分类暂无商品'
+  }
+  return '暂无商品，去发布一个吧'
 }
 
 const handlePublish = async () => {
@@ -92,6 +158,10 @@ const handlePublish = async () => {
   } else {
     router.push('/publish')
   }
+}
+
+const goToDetail = (id) => {
+  router.push(`/goods/${id}`)
 }
 
 const formatTime = (createTime) => {
@@ -142,6 +212,49 @@ const formatTime = (createTime) => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
+}
+
+.search-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.category-tabs {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.search-input-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.search-input {
+  width: 200px;
+}
+
+.tab-item {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.tab-item:hover {
+  background: #f0f0f0;
+}
+
+.tab-item.active {
+  background: #667eea;
+  color: white;
 }
 
 .empty-state {

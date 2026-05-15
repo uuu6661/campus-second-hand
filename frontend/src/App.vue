@@ -6,9 +6,13 @@
       <a href="javascript:void(0)" @click="handlePublish" class="nav-link">发布商品</a>
       <span>|</span>
       <template v-if="isLoggedIn">
-        <span class="user-info">欢迎, {{ username }}</span>
-        <span>|</span>
-        <a href="javascript:void(0)" @click="handleLogout" class="nav-link">退出</a>
+        <div class="user-menu">
+          <span class="user-info" @click="toggleMenu">欢迎, {{ username }} ▼</span>
+          <div class="dropdown-menu" v-if="menuOpen">
+            <a href="javascript:void(0)" @click="handleMyGoods">我的发布</a>
+            <a href="javascript:void(0)" @click="handleLogout">退出登录</a>
+          </div>
+        </div>
       </template>
       <template v-else>
         <router-link to="/register">注册</router-link>
@@ -21,13 +25,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
 
 const router = useRouter()
+const route = useRoute()
 const isLoggedIn = ref(false)
 const username = ref('')
+const menuOpen = ref(false)
 
 const checkLoginStatus = () => {
   const userId = localStorage.getItem('userId')
@@ -59,6 +65,21 @@ const handlePublish = async () => {
   }
 }
 
+const toggleMenu = () => {
+  menuOpen.value = !menuOpen.value
+}
+
+const handleMyGoods = () => {
+  menuOpen.value = false
+  const userId = localStorage.getItem('userId')
+  if (userId) {
+    router.push('/my-goods')
+  } else {
+    localStorage.setItem('redirect', '/my-goods')
+    router.push('/login')
+  }
+}
+
 const handleLogout = async () => {
   try {
     await ElMessageBox.confirm(
@@ -74,10 +95,18 @@ const handleLogout = async () => {
     localStorage.removeItem('username')
     isLoggedIn.value = false
     username.value = ''
+    menuOpen.value = false
     ElMessage.success('退出成功')
     router.push('/home')
   } catch {
     // 用户点击取消，不做任何操作
+  }
+}
+
+const handleClickOutside = (event) => {
+  const userMenu = document.querySelector('.user-menu')
+  if (userMenu && !userMenu.contains(event.target)) {
+    menuOpen.value = false
   }
 }
 
@@ -88,10 +117,16 @@ const handleStorageChange = () => {
 onMounted(() => {
   checkLoginStatus()
   window.addEventListener('storage', handleStorageChange)
+  document.addEventListener('click', handleClickOutside)
 })
 
 onUnmounted(() => {
   window.removeEventListener('storage', handleStorageChange)
+  document.removeEventListener('click', handleClickOutside)
+})
+
+watch(() => route.path, () => {
+  checkLoginStatus()
 })
 </script>
 
@@ -129,5 +164,37 @@ body {
 .user-info {
   color: #667eea;
   font-weight: bold;
+  cursor: pointer;
+}
+
+.user-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 5px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  min-width: 120px;
+  z-index: 100;
+}
+
+.dropdown-menu a {
+  display: block;
+  padding: 10px 15px;
+  color: #333;
+  text-decoration: none;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.dropdown-menu a:hover {
+  background: #f5f5f5;
 }
 </style>
