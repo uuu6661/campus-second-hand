@@ -12,6 +12,7 @@ I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\dto\LoginResponse
 I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\controller\CategoryController.java
 I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\dto\RegisterRequest.java
 I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\SecondhandApplication.java
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\dto\GoodsDTO.java
 I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\dto\RegisterResponse.java
 I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\config\SecurityConfig.java
 I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\repository\GoodsRepository.java
