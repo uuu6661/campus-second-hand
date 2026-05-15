@@ -3,6 +3,8 @@
     <nav class="nav">
       <router-link to="/home">首页</router-link>
       <span>|</span>
+      <router-link to="/publish">发布商品</router-link>
+      <span>|</span>
       <router-link to="/register">注册</router-link>
       <span>|</span>
       <router-link to="/login">登录</router-link>

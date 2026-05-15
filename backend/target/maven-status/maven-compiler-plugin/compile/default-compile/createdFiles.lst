@@ -1,3 +1,9 @@
+com\example\secondhand\entity\Goods.class
 com\example\secondhand\config\CorsConfig.class
 com\example\secondhand\dto\LoginRequest.class
+com\example\secondhand\repository\GoodsRepository.class
+com\example\secondhand\controller\CategoryController.class
+com\example\secondhand\controller\GoodsController.class
+com\example\secondhand\dto\CategoryDTO.class
 com\example\secondhand\dto\LoginResponse.class
+com\example\secondhand\dto\GoodsRequest.class
