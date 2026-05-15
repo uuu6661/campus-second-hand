@@ -1,0 +1,12 @@
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\controller\AuthController.java
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\dto\RegisterRequest.java
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\dto\LoginRequest.java
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\repository\UserRepository.java
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\entity\User.java
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\SecondhandApplication.java
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\dto\RegisterResponse.java
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\config\SecurityConfig.java
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\entity\Item.java
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\dto\ApiResponse.java
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\repository\ItemRepository.java
+I:\SpringBoot+Vue\backend\src\main\java\com\example\secondhand\dto\LoginResponse.java
