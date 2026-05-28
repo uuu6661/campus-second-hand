@@ -5,6 +5,12 @@ import Login from '../views/Login.vue'
 import Publish from '../views/Publish.vue'
 import Detail from '../views/Detail.vue'
 import MyGoods from '../views/MyGoods.vue'
+import Profile from '../views/Profile.vue'
+import AdminLogin from '../views/admin/AdminLogin.vue'
+import AdminLayout from '../views/admin/AdminLayout.vue'
+import AdminUsers from '../views/admin/AdminUsers.vue'
+import AdminGoods from '../views/admin/AdminGoods.vue'
+import Withdrawals from '../views/admin/Withdrawals.vue'
 
 const routes = [
   {
@@ -41,6 +47,41 @@ const routes = [
     path: '/my-goods',
     name: 'MyGoods',
     component: MyGoods
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile
+  },
+  {
+    path: '/admin/login',
+    name: 'AdminLogin',
+    component: AdminLogin
+  },
+  {
+    path: '/admin',
+    component: AdminLayout,
+    children: [
+      {
+        path: 'users',
+        name: 'AdminUsers',
+        component: AdminUsers
+      },
+      {
+        path: 'goods',
+        name: 'AdminGoods',
+        component: AdminGoods
+      },
+      {
+        path: 'withdrawals',
+        name: 'Withdrawals',
+        component: Withdrawals
+      },
+      {
+        path: '',
+        redirect: '/admin/users'
+      }
+    ]
   }
 ]
 

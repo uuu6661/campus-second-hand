@@ -1,24 +1,28 @@
 <template>
   <div id="app">
     <nav class="nav">
-      <router-link to="/home">首页</router-link>
-      <span>|</span>
-      <a href="javascript:void(0)" @click="handlePublish" class="nav-link">发布商品</a>
-      <span>|</span>
-      <template v-if="isLoggedIn">
-        <div class="user-menu">
-          <span class="user-info" @click="toggleMenu">欢迎, {{ username }} ▼</span>
-          <div class="dropdown-menu" v-if="menuOpen">
-            <a href="javascript:void(0)" @click="handleMyGoods">我的发布</a>
-            <a href="javascript:void(0)" @click="handleLogout">退出登录</a>
-          </div>
-        </div>
-      </template>
-      <template v-else>
-        <router-link to="/register">注册</router-link>
+      <div class="nav-left">
+        <router-link to="/home">首页</router-link>
         <span>|</span>
-        <router-link to="/login">登录</router-link>
-      </template>
+        <a href="javascript:void(0)" @click="handlePublish" class="nav-link">发布商品</a>
+      </div>
+      <div class="nav-right">
+        <template v-if="isLoggedIn">
+          <div class="user-menu">
+            <span class="user-info" @click="toggleMenu">欢迎, {{ username }} ▼</span>
+            <div class="dropdown-menu" v-if="menuOpen">
+              <a href="javascript:void(0)" @click="handleProfile">个人中心</a>
+              <a href="javascript:void(0)" @click="handleMyGoods">我的发布</a>
+              <a href="javascript:void(0)" @click="handleLogout">退出登录</a>
+            </div>
+          </div>
+        </template>
+        <template v-else>
+          <router-link to="/register">注册</router-link>
+          <span>|</span>
+          <router-link to="/login">登录</router-link>
+        </template>
+      </div>
     </nav>
     <router-view />
   </div>
@@ -44,7 +48,7 @@ const checkLoginStatus = () => {
 
 const handlePublish = async () => {
   const userId = localStorage.getItem('userId')
-  
+
   if (!userId) {
     try {
       await ElMessageBox.confirm(
@@ -67,6 +71,17 @@ const handlePublish = async () => {
 
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value
+}
+
+const handleProfile = () => {
+  menuOpen.value = false
+  const userId = localStorage.getItem('userId')
+  if (userId) {
+    router.push('/profile')
+  } else {
+    localStorage.setItem('redirect', '/profile')
+    router.push('/login')
+  }
 }
 
 const handleMyGoods = () => {
@@ -144,6 +159,14 @@ body {
 .nav {
   background: #333;
   padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-left, .nav-right {
+  display: flex;
+  align-items: center;
 }
 
 .nav a, .nav-link {

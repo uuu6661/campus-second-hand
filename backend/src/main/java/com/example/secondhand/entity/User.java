@@ -34,6 +34,18 @@ public class User {
     @Column(columnDefinition = "TINYINT DEFAULT 1")
     private Integer status = 1;
 
+    @Column(columnDefinition = "TINYINT DEFAULT 0")
+    private Integer role = 0;
+
+    @Column(name = "audit_status", columnDefinition = "TINYINT DEFAULT 0")
+    private Integer auditStatus = 0;
+
+    @Column(name = "balance", columnDefinition = "DECIMAL(12,2) DEFAULT 0")
+    private Double balance = 0.0;
+
+    @Column(name = "frozen_balance", columnDefinition = "DECIMAL(12,2) DEFAULT 0")
+    private Double frozenBalance = 0.0;
+
     @Column(name = "create_time", updatable = false)
     private LocalDateTime createTime;
 

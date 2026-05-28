@@ -48,11 +48,12 @@ public class AuthController {
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setNickname(request.getNickname());
+        user.setAuditStatus(0);
 
         User savedUser = userRepository.save(user);
 
         RegisterResponse response = new RegisterResponse(savedUser.getId(), savedUser.getUsername());
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success("注册成功，请等待管理员审核", response));
     }
 
     @PostMapping("/login")
@@ -78,9 +79,18 @@ public class AuthController {
             return ResponseEntity.badRequest().body(ApiResponse.error(400, "账号或密码错误"));
         }
 
-        session.setAttribute("userId", user.getId());
+        if (user.getStatus() == 0) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(403, "账号已被封禁"));
+        }
 
-        LoginResponse response = new LoginResponse(user.getId(), user.getUsername(), user.getNickname());
+        if (user.getAuditStatus() != 1 && user.getRole() != 1) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(403, "账号未通过审核，请等待管理员审核"));
+        }
+
+        session.setAttribute("userId", user.getId());
+        session.setAttribute("role", user.getRole());
+
+        LoginResponse response = new LoginResponse(user.getId(), user.getUsername(), user.getNickname(), user.getRole());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

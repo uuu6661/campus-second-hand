@@ -37,9 +37,9 @@
 
       <div v-else class="goods-grid" v-loading="loading">
         <el-card 
-          v-for="goods in goodsList" 
+          v-for="goods in sortedGoodsList" 
           :key="goods.id" 
-          class="goods-card"
+          :class="['goods-card', { 'sold-out': goods.status === 2 }]"
           hover
           @click="goToDetail(goods.id)"
         >
@@ -49,6 +49,7 @@
               :alt="goods.title"
               class="product-img"
             />
+            <span v-if="goods.status === 2" class="sold-badge">已售出</span>
           </div>
           <div class="goods-info">
             <h3 class="goods-title">{{ goods.title }}</h3>
@@ -71,7 +72,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -81,6 +82,16 @@ const goodsList = ref([])
 const loading = ref(false)
 const selectedCategory = ref(null)
 const keyword = ref('')
+
+const sortedGoodsList = computed(() => {
+  return [...goodsList.value].sort((a, b) => {
+    const aStatus = a.status || 1
+    const bStatus = b.status || 1
+    if (aStatus === 2 && bStatus !== 2) return 1
+    if (aStatus !== 2 && bStatus === 2) return -1
+    return new Date(b.createTime) - new Date(a.createTime)
+  })
+})
 
 const categories = ref([
   { id: null, name: '全部' },
@@ -293,12 +304,39 @@ const formatTime = (createTime) => {
   height: 200px;
   overflow: hidden;
   border-radius: 8px;
+  position: relative;
 }
 
 .product-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.sold-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #e74c3c;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.sold-out {
+  opacity: 0.7;
+}
+
+.sold-out .product-img {
+  filter: grayscale(50%);
+}
+
+.sold-out .goods-title,
+.sold-out .price,
+.sold-out .category {
+  color: #999;
 }
 
 .goods-info {
