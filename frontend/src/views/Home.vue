@@ -6,6 +6,19 @@
       <el-button type="primary" size="large" @click="handlePublish">发布商品</el-button>
     </header>
 
+    <div v-if="announcements.length > 0" class="announcement-bar">
+      <div class="announcement-label">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span>公告</span>
+      </div>
+      <div class="announcement-content" @click="showAnnouncementDetail">
+        <span class="announcement-text">{{ currentAnnouncement.title }}</span>
+        <span v-if="currentAnnouncement.isPinned === 1" class="pinned-tag">置顶</span>
+      </div>
+    </div>
+
     <main class="main-content">
       <div class="search-bar">
         <div class="category-tabs">
@@ -18,14 +31,22 @@
             {{ cat.name }}
           </span>
         </div>
-        <div class="search-input-wrapper">
-          <el-input 
-            v-model="keyword" 
-            placeholder="搜索商品..." 
-            class="search-input"
-            @keyup.enter="handleSearch"
-          />
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <div class="right-controls">
+          <el-select v-model="sortValue" placeholder="排序" size="default" @change="handleSortChange" style="width: 130px;">
+            <el-option label="最新发布" value="time_desc" />
+            <el-option label="最早发布" value="time_asc" />
+            <el-option label="价格从低到高" value="price_asc" />
+            <el-option label="价格从高到低" value="price_desc" />
+          </el-select>
+          <div class="search-input-wrapper">
+            <el-input 
+              v-model="keyword" 
+              placeholder="搜索商品..." 
+              class="search-input"
+              @keyup.enter="handleSearch"
+            />
+            <el-button type="primary" @click="handleSearch">搜索</el-button>
+          </div>
         </div>
       </div>
 
@@ -82,6 +103,15 @@ const goodsList = ref([])
 const loading = ref(false)
 const selectedCategory = ref(null)
 const keyword = ref('')
+const sortValue = ref('time_desc')
+const sortField = ref('time')
+const sortOrder = ref('desc')
+const announcements = ref([])
+const currentAnnouncementIndex = ref(0)
+
+const currentAnnouncement = computed(() => {
+  return announcements.value[currentAnnouncementIndex.value] || {}
+})
 
 const sortedGoodsList = computed(() => {
   return [...goodsList.value].sort((a, b) => {
@@ -105,7 +135,16 @@ const categories = ref([
 ])
 
 onMounted(async () => {
-  await loadGoodsList()
+  await Promise.all([
+    loadGoodsList(),
+    loadAnnouncements()
+  ])
+  
+  setInterval(() => {
+    if (announcements.value.length > 1) {
+      currentAnnouncementIndex.value = (currentAnnouncementIndex.value + 1) % announcements.value.length
+    }
+  }, 5000)
 })
 
 const loadGoodsList = async () => {
@@ -118,6 +157,8 @@ const loadGoodsList = async () => {
     if (keyword.value.trim()) {
       params.keyword = keyword.value.trim()
     }
+    params.sortField = sortField.value
+    params.sortOrder = sortOrder.value
     const response = await axios.get('/api/goods', { params })
     if (response.data.code === 200) {
       goodsList.value = response.data.data
@@ -127,6 +168,57 @@ const loadGoodsList = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const loadAnnouncements = async () => {
+  try {
+    const response = await axios.get('/api/announcements')
+    if (response.data.code === 200) {
+      announcements.value = response.data.data
+    }
+  } catch (error) {
+    console.log('获取公告失败')
+  }
+}
+
+const showAnnouncementDetail = () => {
+  if (announcements.value.length === 0) return
+  
+  const announcement = currentAnnouncement.value
+  ElMessageBox.alert(
+    `<div style="text-align: left; line-height: 1.8;">
+      <h3 style="margin: 0 0 16px 0; font-size: 18px;">${announcement.title}</h3>
+      <p style="margin: 0; white-space: pre-wrap;">${announcement.content}</p>
+      <div style="margin-top: 20px; font-size: 12px; color: #999;">
+        发布时间：${formatDateTime(announcement.createTime)}
+        ${announcement.endTime ? '<br>有效期至：' + formatDateTime(announcement.endTime) : ''}
+      </div>
+    </div>`,
+    '公告详情',
+    {
+      confirmButtonText: '关闭',
+      dangerouslyUseHTMLString: true
+    }
+  )
+}
+
+const formatDateTime = (dateTime) => {
+  if (!dateTime) return '-'
+  const date = new Date(dateTime)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const handleSortChange = async () => {
+  const [field, order] = sortValue.value.split('_')
+  sortField.value = field
+  sortOrder.value = order
+  await loadGoodsList()
 }
 
 const selectCategory = async (categoryId) => {
@@ -149,7 +241,7 @@ const getEmptyMessage = () => {
 }
 
 const handlePublish = async () => {
-  const userId = localStorage.getItem('userId')
+  const userId = sessionStorage.getItem('userId')
   
   if (!userId) {
     try {
@@ -219,6 +311,57 @@ const formatTime = (createTime) => {
   margin-bottom: 20px;
 }
 
+.announcement-bar {
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.announcement-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e74c3c;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.announcement-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.announcement-text {
+  color: #333;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.3s;
+}
+
+.announcement-text:hover {
+  color: #667eea;
+}
+
+.pinned-tag {
+  background: #e74c3c;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
 .main-content {
   max-width: 1200px;
   margin: 0 auto;
@@ -231,6 +374,13 @@ const formatTime = (createTime) => {
   align-items: center;
   gap: 20px;
   margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.right-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
   flex-wrap: wrap;
 }
 

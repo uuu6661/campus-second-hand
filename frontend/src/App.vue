@@ -8,6 +8,10 @@
       </div>
       <div class="nav-right">
         <template v-if="isLoggedIn">
+          <a href="javascript:void(0)" @click="handleMessages" class="nav-link messages-link">
+            消息
+            <span v-if="totalUnread > 0" class="unread-badge">{{ totalUnread > 99 ? '99+' : totalUnread }}</span>
+          </a>
           <div class="user-menu">
             <span class="user-info" @click="toggleMenu">欢迎, {{ username }} ▼</span>
             <div class="dropdown-menu" v-if="menuOpen">
@@ -32,22 +36,60 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
+import axios from 'axios'
 
 const router = useRouter()
 const route = useRoute()
 const isLoggedIn = ref(false)
 const username = ref('')
 const menuOpen = ref(false)
+const totalUnread = ref(0)
+let unreadPollInterval = null
 
 const checkLoginStatus = () => {
-  const userId = localStorage.getItem('userId')
-  const user = localStorage.getItem('username')
+  const userId = sessionStorage.getItem('userId')
+  const user = sessionStorage.getItem('username')
   isLoggedIn.value = !!userId
   username.value = user || '用户'
+  if (isLoggedIn.value) {
+    loadUnreadCount()
+    startUnreadPolling()
+  } else {
+    stopUnreadPolling()
+    totalUnread.value = 0
+  }
+}
+
+const loadUnreadCount = async () => {
+  try {
+    const response = await axios.get('/api/messages/unread-count')
+    if (response.data.code === 200) {
+      totalUnread.value = response.data.data.totalUnread || 0
+    }
+  } catch (error) {
+    console.error('加载未读数失败:', error)
+  }
+}
+
+const startUnreadPolling = () => {
+  unreadPollInterval = setInterval(() => {
+    loadUnreadCount()
+  }, 10000)
+}
+
+const stopUnreadPolling = () => {
+  if (unreadPollInterval) {
+    clearInterval(unreadPollInterval)
+    unreadPollInterval = null
+  }
+}
+
+const handleMessages = () => {
+  router.push('/messages')
 }
 
 const handlePublish = async () => {
-  const userId = localStorage.getItem('userId')
+  const userId = sessionStorage.getItem('userId')
 
   if (!userId) {
     try {
@@ -75,22 +117,22 @@ const toggleMenu = () => {
 
 const handleProfile = () => {
   menuOpen.value = false
-  const userId = localStorage.getItem('userId')
+  const userId = sessionStorage.getItem('userId')
   if (userId) {
     router.push('/profile')
   } else {
-    localStorage.setItem('redirect', '/profile')
+    sessionStorage.setItem('redirect', '/profile')
     router.push('/login')
   }
 }
 
 const handleMyGoods = () => {
   menuOpen.value = false
-  const userId = localStorage.getItem('userId')
+  const userId = sessionStorage.getItem('userId')
   if (userId) {
     router.push('/my-goods')
   } else {
-    localStorage.setItem('redirect', '/my-goods')
+    sessionStorage.setItem('redirect', '/my-goods')
     router.push('/login')
   }
 }
@@ -106,8 +148,8 @@ const handleLogout = async () => {
         type: 'warning'
       }
     )
-    localStorage.removeItem('userId')
-    localStorage.removeItem('username')
+    sessionStorage.removeItem('userId')
+    sessionStorage.removeItem('username')
     isLoggedIn.value = false
     username.value = ''
     menuOpen.value = false
@@ -138,6 +180,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('storage', handleStorageChange)
   document.removeEventListener('click', handleClickOutside)
+  stopUnreadPolling()
 })
 
 watch(() => route.path, () => {
@@ -178,6 +221,24 @@ body {
 
 .nav a:hover, .nav-link:hover {
   color: #667eea;
+}
+
+.messages-link {
+  position: relative;
+  padding-right: 25px;
+}
+
+.unread-badge {
+  position: absolute;
+  top: -8px;
+  right: 0;
+  background: #e74c3c;
+  color: white;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
 }
 
 .nav span {

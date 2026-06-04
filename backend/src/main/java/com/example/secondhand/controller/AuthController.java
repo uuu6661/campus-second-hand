@@ -7,7 +7,7 @@ import com.example.secondhand.dto.RegisterRequest;
 import com.example.secondhand.dto.RegisterResponse;
 import com.example.secondhand.entity.User;
 import com.example.secondhand.repository.UserRepository;
-import jakarta.servlet.http.HttpSession;
+import com.example.secondhand.util.JwtUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,9 +21,11 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
-    public AuthController(UserRepository userRepository) {
+    public AuthController(UserRepository userRepository, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
@@ -57,7 +59,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request, HttpSession session) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request) {
         String username = request.getUsername();
         String password = request.getPassword();
 
@@ -87,10 +89,9 @@ public class AuthController {
             return ResponseEntity.badRequest().body(ApiResponse.error(403, "账号未通过审核，请等待管理员审核"));
         }
 
-        session.setAttribute("userId", user.getId());
-        session.setAttribute("role", user.getRole());
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getNickname(), user.getRole());
 
-        LoginResponse response = new LoginResponse(user.getId(), user.getUsername(), user.getNickname(), user.getRole());
+        LoginResponse response = new LoginResponse(token, user.getId(), user.getUsername(), user.getNickname(), user.getRole());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
