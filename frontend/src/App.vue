@@ -12,6 +12,7 @@
             消息
             <span v-if="totalUnread > 0" class="unread-badge">{{ totalUnread > 99 ? '99+' : totalUnread }}</span>
           </a>
+          <a href="javascript:void(0)" @click="handleMyOrders" class="nav-link">我的订单</a>
           <div class="user-menu">
             <span class="user-info" @click="toggleMenu">欢迎, {{ username }} ▼</span>
             <div class="dropdown-menu" v-if="menuOpen">
@@ -48,8 +49,9 @@ let unreadPollInterval = null
 
 const checkLoginStatus = () => {
   const userId = sessionStorage.getItem('userId')
+  const token = sessionStorage.getItem('token')
   const user = sessionStorage.getItem('username')
-  isLoggedIn.value = !!userId
+  isLoggedIn.value = !!userId && !!token
   username.value = user || '用户'
   if (isLoggedIn.value) {
     loadUnreadCount()
@@ -115,6 +117,16 @@ const toggleMenu = () => {
   menuOpen.value = !menuOpen.value
 }
 
+const handleMyOrders = () => {
+  const userId = sessionStorage.getItem('userId')
+  if (userId) {
+    router.push('/my-orders')
+  } else {
+    sessionStorage.setItem('redirect', '/my-orders')
+    router.push('/login')
+  }
+}
+
 const handleProfile = () => {
   menuOpen.value = false
   const userId = sessionStorage.getItem('userId')
@@ -148,11 +160,19 @@ const handleLogout = async () => {
         type: 'warning'
       }
     )
+    // 清除所有登录相关的sessionStorage数据
+    sessionStorage.removeItem('token')
     sessionStorage.removeItem('userId')
     sessionStorage.removeItem('username')
+    sessionStorage.removeItem('nickname')
+    sessionStorage.removeItem('role')
+    
     isLoggedIn.value = false
     username.value = ''
     menuOpen.value = false
+    totalUnread.value = 0
+    stopUnreadPolling()
+    
     ElMessage.success('退出成功')
     router.push('/home')
   } catch {

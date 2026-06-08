@@ -4,6 +4,7 @@ import router from './router'
 import axios from 'axios'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import './styles/global.scss'
 
 axios.defaults.baseURL = 'http://localhost:8080'
 
